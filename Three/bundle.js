@@ -28442,24 +28442,27 @@ const geometry = new BoxGeometry(0.5,0.5,0.5);
 const material = new MeshBasicMaterial({color:'orange'});
 const cubeMesh = new Mesh( geometry, material);
 scene.add(cubeMesh);
-
-// 3 The Camera
-const sizes={
-  width:800,
-  height:600,
-};
-
-const camera = new PerspectiveCamera(75, sizes.width/sizes.height);
+const canvas = document.getElementById('three-canvas');
+const camera = new PerspectiveCamera(75, canvas.clientWidth/canvas.clientHeight);
 scene.add(camera);
 
 camera.position.z = 3;
 
 // 4 The Renderer
-const canvas = document.getElementById('three-canvas');
+
 const renderer = new WebGLRenderer({canvas: canvas});
 
-renderer.setSize(sizes.width,sizes.height);
+renderer.setSize(canvas.clientWidth,canvas.clientHeight, false);
 renderer.render(scene,camera);
+
+// Set PixelRatio for Max 2
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 3));
+//   Responsive Window
+window.addEventListener('resize', () => {
+  camera.aspect = canvas.clientWidth / canvas.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+});
 
 // 5 Animation
 
