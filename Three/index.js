@@ -22,9 +22,15 @@ import {
   DirectionalLight,
   TextureLoader,
   LoadingManager,
+  AmbientLight,
+  SpotLight,
+  Object3D,
 } from 'three';
+import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
 
 import CameraControls from 'camera-controls';
+
+import gsap from "gsap";
 
 // 1 The scene
 const scene = new Scene()
@@ -68,15 +74,14 @@ loadingManager.onProgress = (urlOfLastItemLoaded, itemsLoaded, itemsTotal) => {
 
 
 const material_green = new MeshBasicMaterial({color:0x00ff00, wireframe:true});
-const material_blue = new MeshBasicMaterial({color:0x0000ff});
-// const cubeMesh = new Mesh( geometry, material);
+const material_blue = new MeshPhongMaterial({color:0x0000ff});
+
 const greenCube = new Mesh( geometry, material_green);
 const blueCube = new Mesh( geometry, material_blue);
 
 greenCube.position.x += 1;
 blueCube.position.x -= 1;
 
-// scene.add(cubeMesh);
 scene.add(greenCube);
 scene.add(blueCube);
 
@@ -84,7 +89,14 @@ scene.add(blueCube);
 //Light
 let light = new DirectionalLight(0xffffff);
 light.position.set(0,1,1);
-scene.add(light);
+// scene.add(light);
+
+const color = 0xFFFFFF;
+const intensity = 1;
+const spotlight = new SpotLight(color, intensity,8,1.2,1);
+scene.add(spotlight);
+scene.add(spotlight.target)
+
 
 // 3 The Camera
 
@@ -150,3 +162,34 @@ function animate() {
 }
 
 animate();
+
+// Mock Animation
+const functionParam = {
+  spin: () => {
+    gsap.to(greenCube.rotation,{ y: greenCube.rotation.y +10, duration:1});
+  },
+  spin2: () => {
+    gsap.to(greenCube.rotation,{ z: greenCube.rotation.z +10, duration:1});
+  }
+}
+
+// 6 Debug
+const gui = new GUI();
+
+gui.add(greenCube.position, 'y', -10,10,0.1)
+gui.add(greenCube.position, 'z').min(-10).max(10).step(0.1).name('Z-axis');
+gui.add(greenCube, 'visible').name('GreenCube visibility');
+gui.addFolder('Light2').add(material_green, "wireframe").name("Wireframe");
+
+const colorParam = {
+	design: 0xff0000	
+}
+
+//セッターでパラメータ変更が必要な場合はラッパー関数を作成する
+gui.addColor(colorParam, 'design').onChange(() => {
+	greenCube.material.color.set(colorParam.design);
+})
+
+
+gui.add(functionParam, 'spin');
+gui.add(functionParam, 'spin2');
