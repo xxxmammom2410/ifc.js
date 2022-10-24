@@ -25,6 +25,15 @@ import {
   AmbientLight,
   SpotLight,
   Object3D,
+  Shape,
+  ExtrudeGeometry,
+  BoxBufferGeometry,
+  EdgesGeometry,
+  LineBasicMaterial,
+  LineSegments,
+  WireframeGeometry,
+  Points,
+  PointsMaterial,
 } from 'three';
 import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
 
@@ -64,7 +73,7 @@ loadingManager.onLoad = () => {
   console.log("LOADED!!")
   loadingElem.style.display = 'none';
   const cube = new Mesh(geometry, materials);
-  scene.add(cube);
+  // scene.add(cube);
 }
 
 loadingManager.onProgress = (urlOfLastItemLoaded, itemsLoaded, itemsTotal) => {
@@ -85,11 +94,49 @@ blueCube.position.x -= 1;
 scene.add(greenCube);
 scene.add(blueCube);
 
+const cubeLength = 1; 
+const cubeWidth = 1;
+
+
+// ワイヤーフレーム
+const material = new MeshPhongMaterial( {
+  color: 0xff00f0,
+  polygonOffset: true,
+  polygonOffsetFactor: 1, 
+  polygonOffsetUnits: 1
+} );
+const mesh = new Mesh( geometry, material );
+scene.add( mesh )
+
+const mat = new LineBasicMaterial( { color: 0x00ffff } );
+const wireGeo = new WireframeGeometry(mesh.geometry);
+const wireframe = new LineSegments(wireGeo, mat);
+scene.add(wireframe);
+
+
+// Pointsメッシュ
+const radius = 7;
+const widthSegments = 12;
+const heightSegments = 8;
+const p_geometry = new SphereGeometry(radius, widthSegments, heightSegments);
+
+const p_material = new PointsMaterial({
+	color: 'red',
+	size: 20, // in world units
+  sizeAttenuation:false,
+});
+
+const points = new Points(p_geometry, p_material);
+points.position.set(0,1,0)
+scene.add(points);
+
+
+
 
 //Light
 let light = new DirectionalLight(0xffffff);
 light.position.set(0,1,1);
-// scene.add(light);
+scene.add(light);
 
 const color = 0xFFFFFF;
 const intensity = 1;
