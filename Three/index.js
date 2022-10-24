@@ -1,7 +1,9 @@
 import {
   Scene,
   BoxGeometry,
+  SphereGeometry,
   MeshBasicMaterial,
+  MeshPhongMaterial,
   Mesh,
   PerspectiveCamera,
   WebGLRenderer,
@@ -16,7 +18,10 @@ import {
   Sphere,
   Raycaster,
   MathUtils,
-  Clock
+  Clock,
+  DirectionalLight,
+  TextureLoader,
+  LoadingManager,
 } from 'three';
 
 import CameraControls from 'camera-controls';
@@ -25,20 +30,61 @@ import CameraControls from 'camera-controls';
 const scene = new Scene()
   
 // 2 The Object
-const geometry = new BoxGeometry(0.5,0.5,0.5);
-const material = new MeshBasicMaterial({color:'orange'});
-const material_green = new MeshBasicMaterial({color:0x00ff00});
+const geometry = new BoxGeometry(0.5);
+
+
+//Loading Manager
+const loadingManager = new LoadingManager();
+const loadingElem = document.querySelector('#loading');
+const progressBar = loadingElem.querySelector('.progressbar');
+
+const images = [];
+for (let i = 0; i < 6; i++) {
+  images.push(`https://picsum.photos/200/300?random=${i}`);
+}
+
+const textureLoader = new TextureLoader(loadingManager);
+
+const materials = [
+  new MeshBasicMaterial({map:textureLoader.load(images[0],()=>{console.log("HOGEHOGE")})}),
+  new MeshBasicMaterial({map:textureLoader.load(images[1])}),
+  new MeshBasicMaterial({map:textureLoader.load(images[2])}),
+  new MeshBasicMaterial({map:textureLoader.load(images[3])}),
+  new MeshBasicMaterial({map:textureLoader.load(images[4])}),
+  new MeshBasicMaterial({map:textureLoader.load(images[5])}),
+]
+
+loadingManager.onLoad = () => {
+  console.log("LOADED!!")
+  loadingElem.style.display = 'none';
+  const cube = new Mesh(geometry, materials);
+  scene.add(cube);
+}
+
+loadingManager.onProgress = (urlOfLastItemLoaded, itemsLoaded, itemsTotal) => {
+  const progress = itemsLoaded / itemsTotal;
+  progressBar.style.transform = `scaleX(${progress})`;
+};
+
+
+const material_green = new MeshBasicMaterial({color:0x00ff00, wireframe:true});
 const material_blue = new MeshBasicMaterial({color:0x0000ff});
-const cubeMesh = new Mesh( geometry, material);
+// const cubeMesh = new Mesh( geometry, material);
 const greenCube = new Mesh( geometry, material_green);
 const blueCube = new Mesh( geometry, material_blue);
 
 greenCube.position.x += 1;
 blueCube.position.x -= 1;
 
-scene.add(cubeMesh);
+// scene.add(cubeMesh);
 scene.add(greenCube);
 scene.add(blueCube);
+
+
+//Light
+let light = new DirectionalLight(0xffffff);
+light.position.set(0,1,1);
+scene.add(light);
 
 // 3 The Camera
 
@@ -90,8 +136,7 @@ const clock = new Clock();
 const cameraControls = new CameraControls(camera, canvas);
 
 function animate() {
-  cubeMesh.rotation.x += 0.01;
-  cubeMesh.rotation.z += 0.01;
+
   greenCube.rotation.x += 0.01;
   greenCube.rotation.z += 0.01;
   blueCube.rotation.x += 0.01;
