@@ -41,10 +41,38 @@ import CameraControls from 'camera-controls';
 
 import gsap from "gsap";
 
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
 // 1 The scene
 const scene = new Scene()
   
 // 2 The Object
+
+const loader = new GLTFLoader();
+
+const loadingElem_Spinner = document.querySelector('#loader-container');
+const loadingText = loadingElem_Spinner.querySelector('p');
+
+loader.load('./resources/southern_district_police_station.glb',
+// onLoadコールバック
+(gltf) => {
+  loadingElem_Spinner.style.display = 'none';
+  console.log(gltf)
+  scene.add(gltf.scene);
+},
+
+// onProgressコールバック
+(progress) => {
+  const current = (progress.loaded/progress.total) *100;
+  const formatted = Math.trunc(current * 100) /100;
+  loadingText.textContent = `Loading: ${formatted}`;
+
+},
+// onErrorコールバック
+(error) => {
+  console.log('An error happend:',error);
+}
+);
+
 const geometry = new BoxGeometry(0.5);
 
 

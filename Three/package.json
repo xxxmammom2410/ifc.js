@@ -12,10 +12,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@rollup/plugin-node-resolve": "^15.0.0",
     "camera-controls": "^1.37.3",
     "gsap": "^3.11.3",
-    "rollup": "^3.2.3",
     "three": "^0.145.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^13.0.2",
+    "rollup": "^2.53.2"
   }
 }

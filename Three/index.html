@@ -9,11 +9,21 @@
 </head>
 <body>
   <canvas id="three-canvas"></canvas>
+  
+  <!-- ローディングバー -->
   <div id="loading">
     <div class="progress">
         <div class ="progressbar"></div>
     </div>
-</div>
+  </div>
+
+    <!-- ロード中読み込みスピナー -->
+    <div id="loader-container">
+      <svg viewBox = "25 25 50 50">
+        <circle r="20" cy="50" cx="50"></circle>
+      </svg>
+      <p>Loading...</p>
+    </div>
   <script src="bundle.js"></script>
 </body>
 </html>
