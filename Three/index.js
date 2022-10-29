@@ -34,6 +34,10 @@ import {
   WireframeGeometry,
   Points,
   PointsMaterial,
+  GridHelper,
+  BufferGeometry,
+  Line,
+  MeshNormalMaterial,
 } from 'three';
 import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
 
@@ -44,8 +48,49 @@ import gsap from "gsap";
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
 // 1 The scene
 const scene = new Scene()
+scene.background= 'red'
+
+let objList = []
   
 // 2 The Object
+
+const gridHelper = new GridHelper(10, 10, 'grey', 'grey');
+gridHelper.position.y = -0.5
+scene.add(gridHelper)
+
+const cube1Color = 'blue'
+const cube2Color = 'red'
+const cube3Color = 'green'
+
+const geometry = new BoxGeometry( 0.5 );
+const bluePhongMaterial = new MeshPhongMaterial({ color: cube1Color });
+const redPhongMaterial = new MeshPhongMaterial({ color: cube2Color });
+const greenPhongMaterial = new MeshPhongMaterial({ color: cube3Color });
+
+const cube1 = new Mesh(geometry, bluePhongMaterial);
+cube1.name = 'Blue Cube'
+cube1.position.set(0,1,0);
+scene.add(cube1);
+
+const cube2 = new Mesh(geometry, redPhongMaterial);
+cube2.position.set(3,1,0);
+scene.add(cube2);
+
+const cube3 = new Mesh(geometry, greenPhongMaterial);
+cube3.position.set(-3,1,0);
+scene.add(cube3);
+
+
+
+// const line = new Line(
+//   new BufferGeometry().setFromPoints([
+//     new Vector3(-9, 1, 0),
+//     new Vector3(10, 1, 0),
+//   ]),
+//   new MeshNormalMaterial()
+// );
+
+// scene.add(line)
 
 const loader = new GLTFLoader();
 
@@ -73,7 +118,6 @@ loader.load('./resources/southern_district_police_station.glb',
 }
 );
 
-const geometry = new BoxGeometry(0.5);
 
 
 //Loading Manager
@@ -101,7 +145,8 @@ loadingManager.onLoad = () => {
   console.log("LOADED!!")
   loadingElem.style.display = 'none';
   const cube = new Mesh(geometry, materials);
-  // scene.add(cube);
+  scene.add(cube);
+  gui.add(cube.position,'y',-10,10,0.1).name("cube Y-axis")
 }
 
 loadingManager.onProgress = (urlOfLastItemLoaded, itemsLoaded, itemsTotal) => {
@@ -172,7 +217,54 @@ const spotlight = new SpotLight(color, intensity,8,1.2,1);
 scene.add(spotlight);
 scene.add(spotlight.target)
 
+const blue = 0x000099;
+const green = 0x009900;
+const red = 0x990000;
 
+
+// Helper Object
+const objectsToTest = { 
+  [cube1.uuid]: {object: cube1, color: blue},
+  [cube2.uuid]: {object: cube2, color: red},
+  [cube3.uuid]: {object: cube3, color: green}
+};
+
+const objectsArray = Object.values(objectsToTest).map(item => item.object);
+
+//raycaster
+const raycaster = new Raycaster();
+const mouse = new Vector2();
+let previousSelectedUuid;
+
+window.addEventListener('mousemove', (event) => {
+  mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
+  // canvasの座標は下向きが正
+	mouse.y = - (event.clientY / canvas.clientHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera)
+  
+  const intersects = raycaster.intersectObjects(objectsArray);
+  if (!intersects.length) {
+    resetPreviousSelection();
+    return;
+  };
+
+  const firstIntersection = intersects[0];
+  firstIntersection.object.material.color.set('orange');
+
+  const isNotPrevious = previousSelectedUuid !==firstIntersection.object.uuid;
+  if (previousSelectedUuid !== undefined && isNotPrevious) {
+    resetPreviousSelection();
+  }
+
+  previousSelectedUuid = firstIntersection.object.uuid;
+})
+
+function resetPreviousSelection() {
+  if(previousSelectedUuid === undefined) return;
+  const previousSelected = objectsToTest[previousSelectedUuid];
+  previousSelected.object.material.color.set(previousSelected.color);
+}
 // 3 The Camera
 
 const canvas = document.getElementById('three-canvas');
@@ -185,6 +277,7 @@ camera.position.z = 3;
 
 const renderer = new WebGLRenderer({canvas: canvas})
 
+renderer.setClearColor(0xffffff, 0.5);
 renderer.setSize(canvas.clientWidth,canvas.clientHeight, false);
 renderer.render(scene,camera);
 
@@ -238,6 +331,10 @@ function animate() {
 
 animate();
 
+
+
+// 6 Debug
+
 // Mock Animation
 const functionParam = {
   spin: () => {
@@ -248,7 +345,7 @@ const functionParam = {
   }
 }
 
-// 6 Debug
+// GUI
 const gui = new GUI();
 
 gui.add(greenCube.position, 'y', -10,10,0.1)
@@ -256,6 +353,7 @@ gui.add(greenCube.position, 'z').min(-10).max(10).step(0.1).name('Z-axis');
 gui.add(greenCube, 'visible').name('GreenCube visibility');
 gui.addFolder('Light2').add(material_green, "wireframe").name("Wireframe");
 
+gui.add(mesh.position,'y',-10,10,0.1).name('mesh Y-axis')
 const colorParam = {
 	design: 0xff0000	
 }
@@ -268,3 +366,12 @@ gui.addColor(colorParam, 'design').onChange(() => {
 
 gui.add(functionParam, 'spin');
 gui.add(functionParam, 'spin2');
+
+greenCube.name="green Cube"
+blueCube.name="blue Cube"
+cube2.name = "cube2"
+cube3.name = "cube3"
+const intersect = raycaster.intersectObject(cube1);
+console.log(intersect)
+const intersects = raycaster.intersectObjects([cube1, cube2, cube3 ,greenCube ,blueCube])
+console.log(intersects)

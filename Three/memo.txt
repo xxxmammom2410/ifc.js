@@ -1,0 +1,60 @@
+//インスタンスを作成
+const raycaster = new Raycaster()
+
+
+// 方向ベクトルを規準化
+rayDirection.nomalize();
+
+
+raycaster.set(rayOrigin,rayDirection)
+
+// 判定したいオブジェクトを指定
+intersectObject(obj)
+intersectObjects([obj1,obj2,...]);
+
+
+
+//ヘルパーオブジェクト
+const objectsToTest = { 
+  [cube.uuid]: {object: cube, color: blue},
+  [cube2.uuid]: {object: cube2, color: green},
+  [cube3.uuid]: {object: cube3, color: red}
+};
+
+const objectsArray = Object.values(objectsToTest).map(item => item.object);
+
+
+let previousSelectedUuid;
+// マウス座標を正規座標に変換変換 
+const mouse = new Vector2();
+
+window.addEventListener('mousemove', (event) => {
+	mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
+	mouse.y = - (event.clientY / canvas.clientHeight) * 2 + 1;
+
+  // カメラの空間ベクトルを始点とし、投影された正規座標空間を元にレイキャストを発火
+	raycaster.setFromCamera(mouse, camera)
+	const intersects = raycaster.intersectObjects(objectsArray);
+
+  if(!intersects.length) {
+    resetPreviousSelection();
+    return;
+  };
+
+  const firstIntersection = intersects[0];
+  firstIntersection.object.material.color.set('orange')
+  //フラグを作成 
+  const isNotPrevious = previousSelectedUuid !== firstIntersection.object.uuid;
+
+	if(previousSelectedUuid !== undefined && isNotPrevious) {
+    resetPreviousSelection();
+  }
+
+  previousSelectedUuid = firstIntersection.object.uuid;
+});
+
+function resetPreviousSelection() {
+  if(previousSelectedUuid === undefined) return;
+  const previousSelected = objectsToTest[previousSelectedUuid];
+  previousSelected.object.material.color.set(previousSelected.color);
+}
