@@ -46,6 +46,8 @@ import CameraControls from 'camera-controls';
 import gsap from "gsap";
 
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js'
+
+import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 // 1 The scene
 const scene = new Scene()
 scene.background= 'red'
@@ -97,12 +99,14 @@ const loader = new GLTFLoader();
 const loadingElem_Spinner = document.querySelector('#loader-container');
 const loadingText = loadingElem_Spinner.querySelector('p');
 
+let gltfScene;
 loader.load('./resources/southern_district_police_station.glb',
 // onLoadコールバック
 (gltf) => {
   loadingElem_Spinner.style.display = 'none';
   console.log(gltf)
   scene.add(gltf.scene);
+  gltfScene = gltf.scene;
 },
 
 // onProgressコールバック
@@ -265,6 +269,50 @@ function resetPreviousSelection() {
   const previousSelected = objectsToTest[previousSelectedUuid];
   previousSelected.object.material.color.set(previousSelected.color);
 }
+
+
+window.addEventListener('dblclick', (event) => {
+	mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
+	mouse.y = - (event.clientY / canvas.clientHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse,camera);
+  const intersects = raycaster.intersectObject(gltfScene);
+
+  if(!intersects.length){
+    return;
+  }
+
+  const firstIntersection = intersects[0];
+  const location = firstIntersection.point;
+
+  const result = window.prompt("Introduce message");
+
+  const base = document.createElement('div');
+  base.className = 'base-label';
+
+  const deleteButton = document.createElement('button');
+  deleteButton.textContent = 'X';
+  deleteButton.className = 'delete-button hidden';
+  base.appendChild(deleteButton);
+
+  base.onmouseenter = () => deleteButton.classList.remove('hidden');
+  base.onmouseleave = () => deleteButton.classList.add('hidden');
+
+const postit = document.createElement('div');
+postit.className = 'label';
+postit.textContent = result;
+base.appendChild(postit);
+
+const ifcJsTitle = new CSS2DObject(base);
+ifcJsTitle.position.copy(location);
+scene.add(ifcJsTitle);
+
+deleteButton.onclick = () => {
+  base.remove();
+  ifcJsTitle.element = null;
+  ifcJsTitle.removeFromParent();
+}
+})
 // 3 The Camera
 
 const canvas = document.getElementById('three-canvas');
@@ -283,12 +331,23 @@ renderer.render(scene,camera);
 
 // Set PixelRatio for Max 2
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+//  Set up 2d renderer
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize( window.innerWidth, window.innerHeight );
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.pointerEvents = 'none';
+labelRenderer.domElement.style.top = '0px';
+document.body.appendChild( labelRenderer.domElement );
+
 //   Responsive Window
-window.addEventListener('resize', () => {
+window.addEventListener("resize", () => {
   camera.aspect = canvas.clientWidth / canvas.clientHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+  labelRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
 });
+
 
 // 5 Animation
 
@@ -326,6 +385,7 @@ function animate() {
   const delta = clock.getDelta();
 	cameraControls.update( delta );
 	renderer.render( scene, camera );
+  labelRenderer.render(scene,camera);
   requestAnimationFrame(animate);
 }
 

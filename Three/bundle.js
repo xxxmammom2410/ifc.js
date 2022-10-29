@@ -47269,6 +47269,209 @@ function toTrianglesDrawMode( geometry, drawMode ) {
 
 }
 
+class CSS2DObject extends Object3D {
+
+	constructor( element = document.createElement( 'div' ) ) {
+
+		super();
+
+		this.isCSS2DObject = true;
+
+		this.element = element;
+
+		this.element.style.position = 'absolute';
+		this.element.style.userSelect = 'none';
+
+		this.element.setAttribute( 'draggable', false );
+
+		this.addEventListener( 'removed', function () {
+
+			this.traverse( function ( object ) {
+
+				if ( object.element instanceof Element && object.element.parentNode !== null ) {
+
+					object.element.parentNode.removeChild( object.element );
+
+				}
+
+			} );
+
+		} );
+
+	}
+
+	copy( source, recursive ) {
+
+		super.copy( source, recursive );
+
+		this.element = source.element.cloneNode( true );
+
+		return this;
+
+	}
+
+}
+
+//
+
+const _vector = new Vector3();
+const _viewMatrix = new Matrix4();
+const _viewProjectionMatrix = new Matrix4();
+const _a = new Vector3();
+const _b = new Vector3();
+
+class CSS2DRenderer {
+
+	constructor( parameters = {} ) {
+
+		const _this = this;
+
+		let _width, _height;
+		let _widthHalf, _heightHalf;
+
+		const cache = {
+			objects: new WeakMap()
+		};
+
+		const domElement = parameters.element !== undefined ? parameters.element : document.createElement( 'div' );
+
+		domElement.style.overflow = 'hidden';
+
+		this.domElement = domElement;
+
+		this.getSize = function () {
+
+			return {
+				width: _width,
+				height: _height
+			};
+
+		};
+
+		this.render = function ( scene, camera ) {
+
+			if ( scene.matrixWorldAutoUpdate === true ) scene.updateMatrixWorld();
+			if ( camera.parent === null && camera.matrixWorldAutoUpdate === true ) camera.updateMatrixWorld();
+
+			_viewMatrix.copy( camera.matrixWorldInverse );
+			_viewProjectionMatrix.multiplyMatrices( camera.projectionMatrix, _viewMatrix );
+
+			renderObject( scene, scene, camera );
+			zOrder( scene );
+
+		};
+
+		this.setSize = function ( width, height ) {
+
+			_width = width;
+			_height = height;
+
+			_widthHalf = _width / 2;
+			_heightHalf = _height / 2;
+
+			domElement.style.width = width + 'px';
+			domElement.style.height = height + 'px';
+
+		};
+
+		function renderObject( object, scene, camera ) {
+
+			if ( object.isCSS2DObject ) {
+
+				_vector.setFromMatrixPosition( object.matrixWorld );
+				_vector.applyMatrix4( _viewProjectionMatrix );
+
+				const visible = ( object.visible === true ) && ( _vector.z >= - 1 && _vector.z <= 1 ) && ( object.layers.test( camera.layers ) === true );
+				object.element.style.display = ( visible === true ) ? '' : 'none';
+
+				if ( visible === true ) {
+
+					object.onBeforeRender( _this, scene, camera );
+
+					const element = object.element;
+
+					element.style.transform = 'translate(-50%,-50%) translate(' + ( _vector.x * _widthHalf + _widthHalf ) + 'px,' + ( - _vector.y * _heightHalf + _heightHalf ) + 'px)';
+
+					if ( element.parentNode !== domElement ) {
+
+						domElement.appendChild( element );
+
+					}
+
+					object.onAfterRender( _this, scene, camera );
+
+				}
+
+				const objectData = {
+					distanceToCameraSquared: getDistanceToSquared( camera, object )
+				};
+
+				cache.objects.set( object, objectData );
+
+			}
+
+			for ( let i = 0, l = object.children.length; i < l; i ++ ) {
+
+				renderObject( object.children[ i ], scene, camera );
+
+			}
+
+		}
+
+		function getDistanceToSquared( object1, object2 ) {
+
+			_a.setFromMatrixPosition( object1.matrixWorld );
+			_b.setFromMatrixPosition( object2.matrixWorld );
+
+			return _a.distanceToSquared( _b );
+
+		}
+
+		function filterAndFlatten( scene ) {
+
+			const result = [];
+
+			scene.traverse( function ( object ) {
+
+				if ( object.isCSS2DObject ) result.push( object );
+
+			} );
+
+			return result;
+
+		}
+
+		function zOrder( scene ) {
+
+			const sorted = filterAndFlatten( scene ).sort( function ( a, b ) {
+
+				if ( a.renderOrder !== b.renderOrder ) {
+
+					return b.renderOrder - a.renderOrder;
+
+				}
+
+				const distanceA = cache.objects.get( a ).distanceToCameraSquared;
+				const distanceB = cache.objects.get( b ).distanceToCameraSquared;
+
+				return distanceA - distanceB;
+
+			} );
+
+			const zMax = sorted.length;
+
+			for ( let i = 0, l = sorted.length; i < l; i ++ ) {
+
+				sorted[ i ].element.style.zIndex = zMax - i;
+
+			}
+
+		}
+
+	}
+
+}
+
 // 1 The scene
 const scene = new Scene();
 scene.background= 'red';
@@ -47318,12 +47521,14 @@ const loader = new GLTFLoader();
 const loadingElem_Spinner = document.querySelector('#loader-container');
 const loadingText = loadingElem_Spinner.querySelector('p');
 
+let gltfScene;
 loader.load('./resources/southern_district_police_station.glb',
 // onLoadコールバック
 (gltf) => {
   loadingElem_Spinner.style.display = 'none';
   console.log(gltf);
   scene.add(gltf.scene);
+  gltfScene = gltf.scene;
 },
 
 // onProgressコールバック
@@ -47456,6 +47661,7 @@ let previousSelectedUuid;
 
 window.addEventListener('mousemove', (event) => {
   mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
+  // canvasの座標は下向きが正
 	mouse.y = - (event.clientY / canvas.clientHeight) * 2 + 1;
 
   raycaster.setFromCamera(mouse, camera);
@@ -47481,6 +47687,50 @@ function resetPreviousSelection() {
   const previousSelected = objectsToTest[previousSelectedUuid];
   previousSelected.object.material.color.set(previousSelected.color);
 }
+
+
+window.addEventListener('dblclick', (event) => {
+	mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
+	mouse.y = - (event.clientY / canvas.clientHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse,camera);
+  const intersects = raycaster.intersectObject(gltfScene);
+
+  if(!intersects.length){
+    return;
+  }
+
+  const firstIntersection = intersects[0];
+  const location = firstIntersection.point;
+
+  const result = window.prompt("Introduce message");
+
+  const base = document.createElement('div');
+  base.className = 'base-label';
+
+  const deleteButton = document.createElement('button');
+  deleteButton.textContent = 'X';
+  deleteButton.className = 'delete-button hidden';
+  base.appendChild(deleteButton);
+
+  base.onmouseenter = () => deleteButton.classList.remove('hidden');
+  base.onmouseleave = () => deleteButton.classList.add('hidden');
+
+const postit = document.createElement('div');
+postit.className = 'label';
+postit.textContent = result;
+base.appendChild(postit);
+
+const ifcJsTitle = new CSS2DObject(base);
+ifcJsTitle.position.copy(location);
+scene.add(ifcJsTitle);
+
+deleteButton.onclick = () => {
+  base.remove();
+  ifcJsTitle.element = null;
+  ifcJsTitle.removeFromParent();
+};
+});
 // 3 The Camera
 
 const canvas = document.getElementById('three-canvas');
@@ -47499,12 +47749,23 @@ renderer.render(scene,camera);
 
 // Set PixelRatio for Max 2
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+//  Set up 2d renderer
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize( window.innerWidth, window.innerHeight );
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.pointerEvents = 'none';
+labelRenderer.domElement.style.top = '0px';
+document.body.appendChild( labelRenderer.domElement );
+
 //   Responsive Window
-window.addEventListener('resize', () => {
+window.addEventListener("resize", () => {
   camera.aspect = canvas.clientWidth / canvas.clientHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+  labelRenderer.setSize(canvas.clientWidth, canvas.clientHeight);
 });
+
 
 // 5 Animation
 
@@ -47531,6 +47792,7 @@ CameraControls.install( { THREE: subsetOfTHREE } );
 const clock = new Clock();
 const cameraControls = new CameraControls(camera, canvas);
 
+// cameraControls.setLookAt(15, 15, 15, 0, 10, 0);
 function animate() {
 
   greenCube.rotation.x += 0.01;
@@ -47542,6 +47804,7 @@ function animate() {
   const delta = clock.getDelta();
 	cameraControls.update( delta );
 	renderer.render( scene, camera );
+  labelRenderer.render(scene,camera);
   requestAnimationFrame(animate);
 }
 
