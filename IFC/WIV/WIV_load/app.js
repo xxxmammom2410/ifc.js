@@ -17,4 +17,4 @@ async function loadIfc(url) {
     viewer.context.renderer.postProduction.active = true;
 }
 
-loadIfc('../../models/_ifc/04.ifc');
+loadIfc('../../../models/_ifc/04.ifc');

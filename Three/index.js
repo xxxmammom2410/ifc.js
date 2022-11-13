@@ -252,7 +252,7 @@ window.addEventListener('mousemove', (event) => {
     resetPreviousSelection();
     return;
   };
-
+  
   const firstIntersection = intersects[0];
   firstIntersection.object.material.color.set('orange');
 
