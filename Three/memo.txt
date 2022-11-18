@@ -20,11 +20,47 @@ labelRenderer.render(scene,camera);
 
 ___________________________________________________________________________________
 
+import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+
+//DOMを作成
+  const base = document.createElement('div');
+  base.className = 'base-label';
+
+//DOMをラップしたthreeオブジェクトのCSS2DObjectを作成
+const ifcJsTitle = new CSS2DObject(DOM);
+
+//DOMにthereeの空間座標を与える
+ifcJsTitle.position.copy(location);
+//threeのシーングラフに追加
+scene.add(ifcJsTitle);
+
+
+  //baseをDOMツリーから削除
+  base.remove();
+  //CSSS2DObjectのDOMをnullに
+  ifcJsTitle.element = null;
+  //シーングラフから削除
+  ifcJsTitle.removeFromParent();
+
+
+//  Set up 2d renderer
+//CSSS2DObjectをレンダリングするCSS2DRendererのインスタンスを作成
+const labelRenderer = new CSS2DRenderer();
+
+//WebGLRendererの設定を踏襲
+labelRenderer.setSize( window.innerWidth, window.innerHeight );
+//.domElement　CSS2DRendererで作成されるルートdiv
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.pointerEvents = 'none';
+labelRenderer.domElement.style.top = '0px';
+//元のHTMLのDOMツリーにCSS2DRendererのDOMを追加
+document.body.appendChild( labelRenderer.domElement );
 
 
 
+//他rendererと同様にresize,animate()で更新処理
 
-cameraControls.setLookAt(15, 15, 15, 0, 10, 0);
+
 
 
 
