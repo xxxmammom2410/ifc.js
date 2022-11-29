@@ -38,7 +38,7 @@ async function loadIfc(url) {
 
 loadIfc('../../../models/_ifc/02.ifc');
 
-// Enum
+// Enum型でリストを定義
 // List of categories names
 const categories = {
   IFCWALLSTANDARDCASE,
@@ -82,7 +82,7 @@ async function setupAllCategories() {
     const category = allCategories[i];
     await setupCategory(category);
   }
-} .   
+}    
 async function setupCategory(category) {
   // subsetのcustomIDで命名して登録
   subsets[category] = await newSubsetOfType(category);
