@@ -5,6 +5,7 @@ main();
 async function main() {
 	const viewer = await setupScene();
 	const ifcModel = await viewer.IFC.loadIfcUrl('../../../models/_ifc/01.ifc');
+  // すべてのオブジェクトのIDを取得
 	const allIDs = getAllIds(ifcModel);
 	const subset = getWholeSubset(viewer, ifcModel, allIDs);
 	replaceOriginalModelBySubset(viewer, ifcModel, subset);
