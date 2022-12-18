@@ -38,6 +38,7 @@ import {
   BufferGeometry,
   Line,
   MeshNormalMaterial,
+  Plane
 } from 'three';
 import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
 
@@ -84,15 +85,15 @@ scene.add(cube3);
 
 
 
-// const line = new Line(
-//   new BufferGeometry().setFromPoints([
-//     new Vector3(-9, 1, 0),
-//     new Vector3(10, 1, 0),
-//   ]),
-//   new MeshNormalMaterial()
-// );
+const line = new Line(
+  new BufferGeometry().setFromPoints([
+    new Vector3(-9, 1, 0),
+    new Vector3(10, 1, 0),
+  ]),
+  new MeshNormalMaterial()
+);
 
-// scene.add(line)
+scene.add(line)
 
 const loader = new GLTFLoader();
 
@@ -435,3 +436,8 @@ const intersect = raycaster.intersectObject(cube1);
 console.log(intersect)
 const intersects = raycaster.intersectObjects([cube1, cube2, cube3 ,greenCube ,blueCube])
 console.log(intersects)
+
+
+
+let plane = new Plane(new Vector3(1, 0, 0), 1.2);
+// renderer.clippingPlanes.push(plane);
