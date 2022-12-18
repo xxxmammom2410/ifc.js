@@ -31,17 +31,6 @@ input.addEventListener(
   false
 );
 
-// async function loadIfc(url) {
-//   // Load the model
-//   const model = await viewer.IFC.loadIfcUrl(url);
-
-//   // Add dropped shadow and post-processing efect
-//   await viewer.shadowDropper.renderShadow(model.modelID);
-//   viewer.context.renderer.postProduction.active = true;
-// }
-
-// loadIfc('../../../models/_ifc/04.ifc');
-
 async function setUpMultiThreading() {
   const manager = viewer.IFC.loader.ifcManager;
   // these paths depend on how you structure your project
