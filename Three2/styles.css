@@ -126,3 +126,7 @@ svg {
   border-radius: 1rem;
   pointer-events: all;
 }
+
+.tutorial{
+  position: absolute;
+}

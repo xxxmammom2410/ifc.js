@@ -213,7 +213,7 @@ function onDocumentMouseMove(event) {
 }
 
 const stats = Stats()
-document.body.appendChild(stats.dom)
+// document.body.appendChild(stats.dom)
 
 function animate() {
     requestAnimationFrame(animate)
