@@ -12,12 +12,12 @@ viewer.axes.setAxes();
 
 async function loadIfc(url) {
   // Load the model
-  // const model = await viewer.IFC.loadIfcUrl(url);
+  const model = await viewer.IFC.loadIfcUrl(url);
 
   // Add dropped shadow and post-processing efect
-  // await viewer.shadowDropper.renderShadow(model.modelID);
-  await viewer.GLTF.load('../../../models/_glb/imose_sekisitu2.glb');
-  // viewer.context.renderer.postProduction.active = true;
+  await viewer.shadowDropper.renderShadow(model.modelID);
+  // await viewer.GLTF.load('../../../models/_glb/imose_sekisitu2.glb');
+  viewer.context.renderer.postProduction.active = true;
 }
 
 loadIfc('../../../models/_ifc/04.ifc');
