@@ -10,10 +10,13 @@
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {},
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^24.0.1"
+  },
   "dependencies": {
-    "@rollup/plugin-node-resolve": "^13.0.2",
-    "rollup": "^2.53.2",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "dxf-writer": "^1.18.4",
+    "rollup": "^2.68.0",
     "three": "^0.135.0",
     "web-ifc-viewer": "^1.0.213"
   }
