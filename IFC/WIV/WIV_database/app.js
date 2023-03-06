@@ -95,12 +95,14 @@ function createOrOpenDatabase() {
 }
 
 // Saving the model
-
+//IndexedDBにモデルデータをGLTL経由でblobにして保存
 async function preprocessAndSaveIfc(event) {
     const file = event.target.files[0];
     const url = URL.createObjectURL(file);
 
     // Export to glTF and JSON
+    // IFCモデルとカテゴリの変換を指定してGLTFで書き出し
+    // プロパティの変換を指定した場合はJSONで書き出し
     const result = await viewer.GLTF.exportIfcFileAsGltf({
         ifcFileUrl: url,
         categories: {
@@ -116,9 +118,9 @@ async function preprocessAndSaveIfc(event) {
     console.dir(result)
 
     // Store the result in the browser memory
-
     const models = [];
 
+    // GLTF自体がJSON形式のバイナリ
     for (const categoryName in result.gltf) {
         const category = result.gltf[categoryName];
         for (const levelName in category) {
@@ -144,7 +146,7 @@ async function preprocessAndSaveIfc(event) {
     // And store all the names of the models
     const serializedNames = JSON.stringify(models.map(model => model.name));
     localStorage.setItem("modelsNames", serializedNames);
-    location.reload();
+    // location.reload();
 }
 
 async function loadSavedIfc() {
