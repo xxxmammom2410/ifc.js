@@ -67,28 +67,21 @@ async function loadIfc(url) {
     // link.download = 'properties.json';
     link.href = URL.createObjectURL(jsonFile);
     link.click();
+    URL.revokeObjectURL(link.href);
     ++count
 
   }
 
   let promises = []
 
-  // ループの途中 最後のundefinedが実行されない
-  // safariだとundefinedF3しかダウンロードしない
   // 出力したgltfのカテゴリ名の数だけ
   for (const categoryName in result.gltf) {
-
-
     const category = result.gltf[categoryName];
-
     // カテゴリ内の階高ごとにダウンロード
     for (const levelName in category) {
 
       const file = category[levelName].file;
       if (file) {
-        // 一時停止することで最後のカテゴリもダウンロードできる
-        // debugger
-        // setTimeout(function(){
         console.log("%cFile_Existed", 'color:blue')
         console.log(`%c${file.name}_${categoryName}_${levelName}`, 'color:blue')
         promises.push(download(link, file, categoryName, levelName));
@@ -97,15 +90,6 @@ async function loadIfc(url) {
           await pause(1000);
           count = 0;
         }
-
-        // link.download = `${file.name}_${categoryName}_${levelName}.gltf`;
-        // link.href = URL.createObjectURL(file);
-        // link.click();
-
-
-
-        // },1000)
-
       }
     }
   }
