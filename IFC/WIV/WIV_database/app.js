@@ -122,7 +122,9 @@ async function preprocessAndSaveIfc(event) {
 
     // GLTF自体がJSON形式のバイナリ
     for (const categoryName in result.gltf) {
+      // カテゴリごとに
         const category = result.gltf[categoryName];
+        // 各カテゴリの階層ごとにモデルを分割して保存,読み込みを分割させる
         for (const levelName in category) {
             const file = category[levelName].file;
             if (file) {
@@ -172,5 +174,6 @@ async function loadSavedIfc() {
 function removeDatabase() {
     localStorage.removeItem("modelsNames");
     db.delete();
+    // ページを再読み込み
     location.reload();
 }
