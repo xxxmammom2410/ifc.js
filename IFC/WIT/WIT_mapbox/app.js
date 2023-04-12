@@ -110,7 +110,6 @@ map.on('style.load', () => {
   map.addLayer(customLayer, 'waterway-label');
 });
 
-console.log("hoge")
 
 map.on('load', () => {
 // Insert the layer beneath any symbol layer.
