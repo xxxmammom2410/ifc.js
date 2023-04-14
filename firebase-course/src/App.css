@@ -16,6 +16,20 @@
   border: none;
   padding: 0.375rem 0.75rem;
   border-radius: 0.25rem;
-  background-color: #ffcc32;
 	cursor: pointer;
+}
+
+.orangeButton{
+  background-color: #ffcc32;
+}
+
+.redButton{
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.contentFlexVertical{
+  display: flex;
+  gap: 16px;
+  flex-direction: column;  
 }

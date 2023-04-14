@@ -12,6 +12,6 @@ export const GoogleAuth: FC = () => {
   };
 
 
-  return <button className="coolButton"  onClick={onLoginClick}>Google Login</button>;
+  return <button className="coolButton orangeButton"  onClick={onLoginClick}>Google Login</button>;
 };
 
